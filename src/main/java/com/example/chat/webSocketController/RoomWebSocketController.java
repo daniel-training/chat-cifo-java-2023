@@ -33,6 +33,8 @@ public class RoomWebSocketController {
     @SendTo("/topic/{room}")
     public Message inboundMessage(@DestinationVariable String room, Message message) throws Exception {
 
+        // NOTE: In this version all users are GUEST. Sets as sender and broadcast the message.
+        //       Following versions will add logic to users, chat rooms and persistence for the messages.
         User user = message.getUser();
 
         return new Message(String.format("[%s] %s", user.getNickname(), HtmlUtils.htmlEscape(message.getContent())),
