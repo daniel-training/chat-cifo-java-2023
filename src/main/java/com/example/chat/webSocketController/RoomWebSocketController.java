@@ -37,7 +37,7 @@ public class RoomWebSocketController {
 
         return new Message(String.format("[%s] %s", user.getNickname(), HtmlUtils.htmlEscape(message.getContent())),
                 user,
-                new Room(room, message.getUser()));
+                new Room(room, user));
 
     }
 

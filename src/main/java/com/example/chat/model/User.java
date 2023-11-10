@@ -1,6 +1,10 @@
 package com.example.chat.model;
 
+import jakarta.persistence.*;
+
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Entity class that holds the User state.
@@ -25,11 +29,16 @@ import java.time.Instant;
  * @see com.example.chat.model.Room
  * @see com.example.chat.model.Message
  */
+
+// lombok annotations
+// @Data // generates getters, setters, equals, hashCode, and toString methods
+// @NoArgsConstructor // generates a no-args constructor
+// @AllArgsConstructor // generates a constructor with all arguments
+@Entity
+@Table(name = "ACCOUNT")
 public class User {
 
-
 // Constants & Enums
-
 
     /**
      * A user can have one of the following roles:
@@ -66,7 +75,10 @@ public class User {
      * in relation with the single DB source. If the object is exchanged with external systems use the <code>uuid</code>
      * for identification.
      */
-    private int id;
+    @Id
+    @Column(name = "ID")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Long id;
 
     /**
      * Universally Unique Identifier for the user.
@@ -76,6 +88,7 @@ public class User {
      * <p>
      * It is read only. Assigned when the user is going to be created in the DB.
      */
+    @Column(name = "UUID")
     private String uuid;
 
     /**
@@ -83,28 +96,33 @@ public class User {
      *
      * @see Role
      */
-    //TODO: @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ROLE")
     private Role role;
 
     /**
      * The name of the user
      */
+    @Column(name = "NAME")
     private String name;
 
     /**
      * The surname of the user
      */
+    @Column(name = "SURNAME")
     private String surname;
 
     /**
      * The nickname of the user, used as reference during chat session, is used to set the message's sender.
      */
+    @Column(name = "NICKNAME")
     private String nickname;
 
     /**
      * The email of the user, is used in the sign-in process.
      * TODO: authentication & authorization are pending to implement
      */
+    @Column(name = "EMAIL")
     private String email;
 
     /**
@@ -112,6 +130,7 @@ public class User {
      * deleting it, for example to ban sign-in a conflicting user or forbid an administrator from accessing the Admin
      * Website.
      */
+    @Column(name = "ACTIVE")
     private boolean active;
 
     /**
@@ -119,6 +138,7 @@ public class User {
      * <p>
      * It is read only. Assigned when the user is going to be created in the DB.
      */
+    @Column(name = "CREATED_AT")
     private Instant createdAt;
 
     /**
@@ -126,22 +146,39 @@ public class User {
      * <p>
      * It is read only. Assigned when the user is going to be updated in the DB.
      */
+    @Column(name = "UPDATED_AT")
     private Instant updatedAt;
+
+    /**
+     *  relation of rooms that owns this user
+     */
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL)
+    private List<Room> rooms = new ArrayList<Room>();
+
+    /**
+     *  relation of messages of this user
+     */
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Message> messages = new ArrayList<Message>();
 
 
     // Getters & Setters
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
+
+//    public void setId(long id) {
+//        this.id = id;
+//    }
 
     public String getUuid() {
         return uuid;
     }
 
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
-    }
+//    public void setUuid(String uuid) {
+//        this.uuid = uuid;
+//    }
 
     public Role getRole() {
         return role;
@@ -196,12 +233,38 @@ public class User {
         return createdAt;
     }
 
+    //    public void setCreatedAt(Instant createdAt) {
+//        this.createdAt = createdAt;
+//    }
+//
     public Instant getUpdatedAt() {
         return updatedAt;
     }
 
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public List<Room> getRooms() {
+        return rooms;
+    }
+
+    public void setRooms(List<Room> rooms) {
+        this.rooms = rooms;
+    }
+
+    public List<Message> getMessages() {
+        return messages;
+    }
+
+    public void setMessages(List<Message> messages) {
+        this.messages = messages;
+    }
+
 
     // Constructors
+
+    public User() {}
 
     /**
      * Class constructor specifying only the nickname. Therefor is a GUEST user.
@@ -219,6 +282,19 @@ public class User {
         this.surname = surname;
         this.nickname = nickname;
         this.email = email;
+    }
+
+    public User(Long id, String uuid, Role role, String name, String surname, String nickname, String email, boolean active, Instant createdAt, Instant updatedAt) {
+        this.id = id;
+        this.uuid = uuid;
+        this.role = role;
+        this.name = name;
+        this.surname = surname;
+        this.nickname = nickname;
+        this.email = email;
+        this.active = active;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
 }

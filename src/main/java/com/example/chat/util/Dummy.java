@@ -1,9 +1,10 @@
 package com.example.chat.util;
 
 import com.example.chat.model.Room;
+import com.example.chat.model.User;
 import com.github.javafaker.Faker;
-import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 
+import java.lang.reflect.Method;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -119,15 +120,22 @@ public final class Dummy {
 
         Faker dummy = new Faker(new Locale("en-US"));
 
-        Instant createdAt = randomTimestampBetween(LocalDate.of(2023, 1, 1), LocalDate.of(2023, 12, 31));
+        // Manual timestamp range setting
+        // Instant createdAt = randomTimestampBetween(LocalDate.of(2023, 1, 1), LocalDate.of(2023, 12, 31));
 
-        return new Room(UUID.randomUUID().toString(),
+        // Relative to now timestamp range in 6 moths prior and 6 months later
+        Instant timestampNow = Instant.now();
+        Instant createdAt = randomTimestampBetween(timestampNow.minus(60, ChronoUnit.DAYS), timestampNow.plus(60, ChronoUnit.DAYS));
+
+        return new Room(null,
+                UUID.randomUUID().toString(),
                 dummy.job().field(),
                 dummy.lorem().sentence(10, 4),
                 null, //TODO set a random owner. Currently basic version only system rooms are allowed
                 createdAt,
                 randomTimestampAfter(createdAt, 60)
         );
+
     }
 
 
@@ -162,14 +170,13 @@ public final class Dummy {
             }
 
             // Per each title generate a room and override with the current title of the collection.
-            for (String title : titles){
-                Room room = new Room();
-                room = generateRoom();
+            for (String title : titles) {
+                Room room = generateRoom();
                 room.setTitle(title);
                 rooms.add(room);
             }
         } else {
-            // Generate rooms, titles can non unique and cam be repeated.
+            // Generate rooms, titles set to non unique and cam be repeated.
             for (int i = 0; i < number; i++) {
                 rooms.add(generateRoom());
             }
@@ -177,5 +184,131 @@ public final class Dummy {
 
         return rooms;
     }
+
+    /**
+     * Generates a variety of geek :) nicknames
+     *
+     * Random pick characters from several geek themes
+     *
+     * @return a geek nickname
+     */
+    public static String generateGeekNickname() {
+
+        Faker dummy = new Faker(new Locale("en-US"));
+
+        // Makes possible a variety of geek :) nicknames
+        String[] randomGeekNicknamesSource = {"starTrek", "dragonBall", "hobbit", "gameOfThrones", "dune", "friends"};
+        String geekTheme = randomGeekNicknamesSource[new Random().nextInt(randomGeekNicknamesSource.length)];
+
+        String geekNickname = null;
+
+        // TODO: Compare for performance evaluation with a implementation version of hardcode calls filtered by switch or if else-if instead
+        //       reflection
+        try {
+            Method dummyGeekThemeMethod = dummy.getClass().getMethod(geekTheme);
+            Object dummyGeekTheme = dummyGeekThemeMethod.invoke(dummy);
+            Method dummyGeekNicknameMethod = dummyGeekTheme.getClass().getMethod("character");
+            geekNickname = (String) dummyGeekNicknameMethod.invoke(dummyGeekTheme);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        return geekNickname;
+    }
+
+    /**
+     * Generate a dummy User The allowed role for users are randomly set with Role.USER or Role.GUEST
+     *
+     * @return a dummy User
+     */
+    public static User generateUser() {
+
+        Faker dummy = new Faker(new Locale("en-US"));
+
+        // Manual timestamp range setting
+        // Instant createdAt = randomTimestampBetween(LocalDate.of(2023, 1, 1), LocalDate.of(2023, 12, 31));
+
+        // Relative to now timestamp range in 6 moths prior and 6 months later
+        Instant timestampNow = Instant.now();
+        Instant createdAt = randomTimestampBetween(timestampNow.minus(60, ChronoUnit.DAYS), timestampNow.plus(60, ChronoUnit.DAYS));
+
+        // Allowed roles for user dummy creation
+        User.Role[] randomRolesSource = {User.Role.USER, User.Role.GUEST};
+        User.Role role = randomRolesSource[new Random().nextInt(randomRolesSource.length)];
+
+        String name = dummy.name().firstName();
+        String email = name.toLowerCase().replaceAll(" +", ".") + "@" + dummy.internet().domainName();
+
+        return role.equals(User.Role.USER)
+                ? new User(null,
+                UUID.randomUUID().toString(),
+                role,
+                name,
+                dummy.name().lastName(),
+                generateGeekNickname(),
+                email,
+                true,
+                createdAt,
+                randomTimestampAfter(createdAt, 60))
+                : new User(null,
+                UUID.randomUUID().toString(),
+                role,
+                null,
+                null,
+                generateGeekNickname(),
+                null,
+                true,
+                createdAt,
+                randomTimestampAfter(createdAt, 60));
+    }
+
+
+    /**
+     * Generate a collection of dummy users.
+     * <p>
+     * The users created are role randomly set as Role.USER or Role.GUEST The nickname of the collection can be unique
+     * or not. If non unique nickname is set, the number of elements of the collection corresponds to the requested
+     * number parameter, but if unique nickname is set, then the total number of elements are not guarantee, in this
+     * case always collection elements <= number users requested due randomness of collisions for unique nicknames
+     * creation. This is preferable than blocking the process waiting to obtain all users with uniquely nickname,
+     * whatever the amount number required. And also having to rely on a sufficient set of source nicknames to draw from
+     * randomly.
+     *
+     * @param number         amount of users to be generate. if unique nickname is not required: generated userss ==
+     *                       number, else generated userss <= number
+     * @param uniqueNickname sets for require unique nickname in the users collection
+     * @return collection of users
+     */
+    public static List<User> generateUsers(int number, boolean uniqueNickname) {
+
+        List<User> users = new ArrayList<>();
+
+        if (uniqueNickname) {
+            // unique nickname collection
+            HashSet<String> nicknames = new HashSet<String>();
+            Faker dummy = new Faker(new Locale("en-US"));
+
+            // Generate a collection of unique nicknames. HashSet add method ensures for that, it returns true/false if can
+            // or not perform the operation.
+            for (int i = 0; i < number; i++) {
+                nicknames.add(generateGeekNickname());
+            }
+
+            // Per each nickname generate an user and override with the current nickname of the collection.
+            for (String nickname : nicknames) {
+                User user = generateUser();
+                user.setNickname(nickname);
+                users.add(user);
+            }
+        } else {
+            // Generate users, nicknames set to be non unique and cam be repeated.
+            for (int i = 0; i < number; i++) {
+                users.add(generateUser());
+            }
+        }
+
+        return users;
+    }
+
 
 }

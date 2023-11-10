@@ -1,6 +1,10 @@
 package com.example.chat.model;
 
+import jakarta.persistence.*;
+
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Entity class that holds the chat room state.
@@ -18,6 +22,14 @@ import java.time.Instant;
  *
  * @see com.example.chat.model.User
  */
+
+
+// lombok annotations
+// @Data // generates getters, setters, equals, hashCode, and toString methods
+// @NoArgsConstructor // generates a no-args constructor
+// @AllArgsConstructor // generates a constructor with all arguments
+@Entity
+@Table(name = "ROOM") // With @Table can custom the table name
 public class Room {
 
     // Fields
@@ -32,7 +44,10 @@ public class Room {
      * in relation with the single DB source. If the object is exchanged with external systems use the <code>uuid</code>
      * for identification.
      */
-    private int id;
+    @Id
+    @Column(name = "ID") // With @Column can custom the column name
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Long id;
 
     /**
      * Universally Unique Identifier for the chat room.
@@ -42,16 +57,19 @@ public class Room {
      * <p>
      * It is read only. Assigned when the chat room is going to be created in the DB.
      */
+    @Column(name = "UUID")
     private String uuid;
 
     /**
      * Holds the name of the chat room. It is the reference used for the WebSocket subscription endpoint.
      */
+    @Column(name = "TITLE")
     private String title;
 
     /**
      * Summary about what is discussed in the chat room.
      */
+    @Column(name = "DESCRIPTION")
     private String description;
 
     /**
@@ -62,13 +80,26 @@ public class Room {
      *
      * @see com.example.chat.model.User
      */
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "ACCOUNT_ID")
     private User owner;
+
+    /**
+     * <code>Messages</code> messages of the room.
+     *
+     * @see com.example.chat.model.Room
+     */
+
+    @OneToMany(mappedBy = "room", cascade = CascadeType.ALL)
+    private List<Message> messages = new ArrayList<Message>();
+
 
     /**
      * Timestamp in UTC when the chat room is created.
      * <p>
      * It is read only. Assigned when the chat room is going to be created in the DB.
      */
+    @Column(name = "CREATED_AT")
     private Instant createdAt;
 
     /**
@@ -76,26 +107,27 @@ public class Room {
      * <p>
      * It is read only. Assigned when the chat room is going to be updated in the DB.
      */
+    @Column(name = "UPDATED_AT")
     private Instant updatedAt;
 
 
     // Getters & Setters
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+//    public void setId(long id) {
+//        this.id = id;
+//    }
 
     public String getUuid() {
         return uuid;
     }
 
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
-    }
+//    public void setUuid(String uuid) {
+//        this.uuid = uuid;
+//    }
 
     public String getTitle() {
         return title;
@@ -125,12 +157,27 @@ public class Room {
         return createdAt;
     }
 
+//    public void setCreatedAt(Instant createdAt) {
+//        this.createdAt = createdAt;
+//    }
+
     public Instant getUpdatedAt() {
         return updatedAt;
     }
 
+//    public void setUpdatedAt(Instant updatedAt) {
+//        this.updatedAt = updatedAt;
+//    }
+
 
     // Constructors
+
+    public Room() {}
+
+    public Room(String title, User owner) {
+        this.title = title;
+        this.owner = owner;
+    }
 
     public Room(String title, String description, User owner) {
         this.title = title;
@@ -138,10 +185,13 @@ public class Room {
         this.owner = owner;
     }
 
-    public Room(String title, User owner) {
+    public Room(Long id, String uuid, String title, String description, User owner, Instant createdAt, Instant updatedAt) {
+        this.id = id;
+        this.uuid = uuid;
         this.title = title;
+        this.description = description;
         this.owner = owner;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
-
-
 }

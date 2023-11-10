@@ -1,5 +1,7 @@
 package com.example.chat.model;
 
+import jakarta.persistence.*;
+
 import java.time.Instant;
 
 /**
@@ -15,6 +17,13 @@ import java.time.Instant;
  * @see com.example.chat.model.User
  * @see com.example.chat.model.Room
  */
+
+// lombok annotations
+// @Data // generates getters, setters, equals, hashCode, and toString methods
+// @NoArgsConstructor // generates a no-args constructor
+// @AllArgsConstructor // generates a constructor with all arguments
+@Entity
+@Table(name = "MESSAGE") // With @Table can custom the table name
 public class Message {
 
 
@@ -30,7 +39,10 @@ public class Message {
      * in relation with the single DB source. If the object is exchanged with external systems use the <code>uuid</code>
      * for identification.
      */
-    private int id;
+    @Id
+    @Column(name = "ID")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Long id;
 
     /**
      * Universally Unique Identifier for the message.
@@ -40,6 +52,7 @@ public class Message {
      * <p>
      * It is read only. Assigned when message created by the constructor.
      */
+    @Column(name = "UUID")
     private String uuid;
 
     /**
@@ -47,6 +60,8 @@ public class Message {
      *
      * @see com.example.chat.model.User
      */
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "ACCOUNT_ID")
     private User user;
 
     /**
@@ -54,11 +69,14 @@ public class Message {
      *
      * @see com.example.chat.model.Room
      */
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "ROOM_ID")
     private Room room;
 
     /**
      * Content body of the message.
      */
+    @Column(name = "CONTENT")
     private String content;
 
     /**
@@ -66,18 +84,27 @@ public class Message {
      * <p>
      * It is read only. Assigned when message created by the constructor.
      */
+    @Column(name = "CREATED_AT")
     private Instant createdAt;
 
 
     // Getters & Setters
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
+
+//    public void setId(long id) {
+//        this.id = id;
+//    }
 
     public String getUuid() {
         return uuid;
     }
+
+//    public void setUuid(String uuid) {
+//        this.uuid = uuid;
+//    }
 
     public User getUser() {
         return user;
@@ -107,17 +134,12 @@ public class Message {
         return createdAt;
     }
 
+//    public void setCreatedAt(Instant createdAt) {
+//        this.createdAt = createdAt;
+//    }
 
     // Constructors
 
-    /**
-     * Explicit default constructor. It is need to prevent deserialize errors when mapping from client side json to
-     * Message and the sprint framework converter can not deduce a specialized constructor, then it will use the default
-     * constructor.
-     * <p>
-     * TODO: Investigate, there has to be a way to tell spring boot to explicitly use a given constructor, instead of
-     *      the mapping process trying to infer one on its own.
-     */
     public Message() {}
 
     public Message(String content, User user) {
@@ -131,5 +153,12 @@ public class Message {
         this.room = room;
     }
 
-
+    public Message(Long id, String uuid, User user, Room room, String content, Instant createdAt) {
+        this.id = id;
+        this.uuid = uuid;
+        this.user = user;
+        this.room = room;
+        this.content = content;
+        this.createdAt = createdAt;
+    }
 }
