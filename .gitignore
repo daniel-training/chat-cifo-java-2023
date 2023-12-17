@@ -1,5 +1,6 @@
 #### chat-cifo-java-2023
 resources/database/
+src/main/resources/security/keys/
 
 #### Java
 
