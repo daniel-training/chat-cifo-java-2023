@@ -7,9 +7,9 @@ See [Wiki](https://github.com/daniel-training/chat-cifo-java-2023/wiki) for more
 <br />
 <br />
 <br />
-## NOTE:
-### Development environment 
-#### Security configuration 
+
+## Development environment 
+### Security configuration 
 
 The Security is managed by JSON Web Tokens (JWT). A pair of RSA PEM-encoded PKCS#8 asymmetric keys are need to be configured in the environment.
 
