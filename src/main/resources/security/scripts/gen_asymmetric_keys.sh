@@ -63,8 +63,6 @@ use_keys_directory(){
   return $RESULT
 }
 
-
-
 ################################################################################
 ## Function generate_keys()                                                   ##
 ##   params: --                                                               ##
@@ -103,7 +101,6 @@ generate_keys(){
   if use_keys_directory "${SCRIPT_DIRECTORY}/../${KEYS_DIRECTORY}"
   then
 
-
     if [ ! -e "$PRIVATE_KEY_FILE" ]
     then
 
@@ -113,9 +110,9 @@ generate_keys(){
       if $HEAD -n 1 "$PRIVATE_KEY_FILE" | $GREP -q -F -- "$PKCS1"
       then
       	echo "Converting PKCS#1 to PKCS#8 ..."
-	$MV "$PRIVATE_KEY_FILE" "$PRIVATE_KEY_FILE.pkcs1"
-	$OPENSSL pkcs8 -inform pem -in "$PRIVATE_KEY_FILE.pkcs1" -topk8 -nocrypt -outform pem -out "$PRIVATE_KEY_FILE"
-	$RM "$PRIVATE_KEY_FILE.pkcs1"
+        $MV "$PRIVATE_KEY_FILE" "$PRIVATE_KEY_FILE.pkcs1"
+        $OPENSSL pkcs8 -inform pem -in "$PRIVATE_KEY_FILE.pkcs1" -topk8 -nocrypt -outform pem -out "$PRIVATE_KEY_FILE"
+        $RM "$PRIVATE_KEY_FILE.pkcs1"
       fi
 
       echo "Generating RSA public key ..."
